@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تسجيل بيانات المخدوم</title>
+<meta name="theme-color" content="#6366f1">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg:#f1f5f9; --card:#ffffff; --text:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --primary:#6366f1; --primary-d:#4f46e5; --ok:#10b981; --err:#ef4444;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8; --line:#334155; }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    font-family:'Cairo',system-ui,sans-serif; background:var(--bg); color:var(--text);
+    min-height:100vh; padding:16px 14px calc(24px + env(safe-area-inset-bottom,0px));
+  }
+  .wrap{max-width:520px;margin:0 auto}
+  h1{font-size:22px;margin:6px 0 4px;text-align:center}
+  .sub{text-align:center;color:var(--muted);font-size:14px;margin:0 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 6px 24px -14px rgba(0,0,0,.25)}
+  label{display:block;font-weight:700;font-size:14px;margin:0 0 6px}
+  .g{margin-bottom:14px}
+  input,select{
+    width:100%;font:inherit;font-size:16px;color:var(--text);background:transparent;
+    border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;
+  }
+  input:focus,select:focus{border-color:var(--primary)}
+  select option{color:#0f172a}
+  .bad{border-color:var(--err)!important}
+  .seg{display:flex;gap:10px}
+  .seg input{display:none}
+  .seg label{
+    flex:1;text-align:center;margin:0;padding:12px;border:1.5px solid var(--line);
+    border-radius:12px;cursor:pointer;font-weight:700
+  }
+  .seg input:checked + label{background:var(--primary);border-color:var(--primary);color:#fff}
+  button{
+    font:inherit;font-weight:800;font-size:16px;border:0;border-radius:14px;padding:14px 16px;
+    cursor:pointer;color:#fff;background:var(--primary);width:100%
+  }
+  button:active{transform:scale(.98)}
+  button.ok{background:var(--ok)}
+  button.ghost{background:transparent;color:var(--text);border:1.5px solid var(--line)}
+  .row{display:flex;gap:10px;margin-top:10px}
+  .row button{flex:1}
+  .hidden{display:none!important}
+  #result{text-align:center}
+  #result img{width:100%;max-width:360px;border-radius:14px;border:1px solid var(--line);background:#fff;-webkit-touch-callout:default;user-select:auto}
+  .tip{font-size:13px;color:var(--muted);margin:10px 4px 0;line-height:1.7}
+  .saved h2{font-size:16px;margin:26px 0 10px}
+  .item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+  .item b{flex:1;font-size:15px}
+  .item small{display:block;color:var(--muted);font-weight:400}
+  .item button{width:auto;padding:8px 12px;font-size:13px;border-radius:10px}
+  .item .del{background:transparent;color:var(--err);border:1.5px solid var(--line)}
+  #qr-tmp{position:fixed;left:-9999px;top:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>تسجيل بيانات المخدوم</h1>
+  <p class="sub">املأ البيانات وهيطلعلك كارت QR تحفظه على موبايلك</p>
+
+  <!-- الفورم -->
+  <div class="card" id="formCard">
+    <div class="g">
+      <label for="f-name">الاسم</label>
+      <input id="f-name" type="text" placeholder="الاسم رباعي" autocomplete="name">
+    </div>
+    <div class="g">
+      <label>النوع</label>
+      <div class="seg">
+        <input type="radio" name="gender" id="g-m" value="M" checked><label for="g-m">خادم</label>
+        <input type="radio" name="gender" id="g-f" value="F"><label for="g-f">خادمة</label>
+      </div>
+    </div>
+    <div class="g">
+      <label for="f-stage">المرحلة الجامعية</label>
+      <input id="f-stage" type="text" placeholder="مثال: فرقة أولى تجارة">
+    </div>
+    <div class="g">
+      <label for="f-family">الأسرة</label>
+      <input id="f-family" type="text" placeholder="مثال: أسرة مارجرجس">
+    </div>
+    <div class="g">
+      <label for="f-birth">تاريخ الميلاد</label>
+      <input id="f-birth" type="date">
+    </div>
+    <div class="g">
+      <label for="f-phone">رقم التليفون</label>
+      <input id="f-phone" type="tel" inputmode="tel" placeholder="01xxxxxxxxx" autocomplete="tel">
+    </div>
+    <div class="g">
+      <label for="f-address">العنوان</label>
+      <input id="f-address" type="text" placeholder="العنوان بالتفصيل" autocomplete="street-address">
+    </div>
+    <div class="g">
+      <label for="f-father">أب الاعتراف</label>
+      <input id="f-father" type="text" placeholder="اسم أب الاعتراف">
+    </div>
+    <button id="btn-make">إنشاء كارت QR 🔐</button>
+  </div>
+
+  <!-- النتيجة -->
+  <div class="card hidden" id="result">
+    <h2 style="margin:0 0 12px;font-size:18px">✅ الكارت جاهز</h2>
+    <img id="cardImg" alt="كارت QR">
+    <div class="row">
+      <button class="ok" id="btn-dl">📥 حفظ الصورة</button>
+      <button id="btn-share">📤 مشاركة</button>
+    </div>
+    <button class="ghost" id="btn-new" style="margin-top:10px">➕ تسجيل شخص آخر</button>
+    <p class="tip">
+      الكارت ده <b>ثابت ومبيتغيرش ولا بينتهي</b> لأن كل البيانات مكتوبة جوّه الـ QR نفسه.<br>
+      احفظ الصورة في معرض الصور (أو اضغط مطوّلاً على الصورة واختار حفظ)، وممكن تعمل لها لقطة شاشة كنسخة احتياطية.
+    </p>
+  </div>
+
+  <!-- المسجلين على الجهاز -->
+  <div class="saved hidden" id="savedBox">
+    <h2>اللي اتسجّلوا على الجهاز ده</h2>
+    <div id="savedList"></div>
+  </div>
+</div>
+
+<div id="qr-tmp"></div>
+
+<script>
+/* ========= صيغة الـ QR (لازم تفضل زي ما هي عشان index.html يقراها) =========
+   "TKM1:" + base64( UTF-8( JSON [ الاسم, M|F, المرحلة, الأسرة, تاريخ الميلاد, التليفون, العنوان, أب الاعتراف ] ) )
+   كل البيانات جوّه الـ QR، فمفيش سيرفر ومفيش حاجة تنتهي. */
+const PREFIX = 'TKM1:';
+const LS_KEY = 'tkm_registered_v1';
+
+function toB64(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin);
+}
+function digits(s){
+  return String(s||'').replace(/[٠-٩]/g,d=>d.charCodeAt(0)-1632).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-1776);
+}
+function buildPayload(d){
+  return PREFIX + toB64(JSON.stringify([d.name,d.gender,d.stage,d.family,d.birth,d.phone,d.address,d.father]));
+}
+
+const $ = id => document.getElementById(id);
+const FIELDS = ['f-name','f-stage','f-family','f-birth','f-phone','f-address','f-father'];
+
+function readForm(){
+  return {
+    name: $('f-name').value.trim(),
+    gender: document.querySelector('input[name=gender]:checked').value,
+    stage: $('f-stage').value.trim(),
+    family: $('f-family').value.trim(),
+    birth: $('f-birth').value,
+    phone: digits($('f-phone').value).replace(/[^\d+]/g,''),
+    address: $('f-address').value.trim(),
+    father: $('f-father').value.trim()
+  };
+}
+
+/* ========= رسم الكارت (صورة PNG فيها الاسم + الـ QR) ========= */
+function makeQRCanvas(text, size){
+  return new Promise(res=>{
+    const box = $('qr-tmp'); box.innerHTML = '';
+    new QRCode(box,{text, width:size, height:size, colorDark:'#0f172a', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M});
+    setTimeout(()=>res(box.querySelector('canvas')),60);
+  });
+}
+
+async function buildCard(d){
+  const qr = await makeQRCanvas(buildPayload(d), 520);
+  const W = 640, H = 860;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#ffffff'; x.fillRect(0,0,W,H);
+  x.fillStyle = '#6366f1'; x.fillRect(0,0,W,16);
+  x.direction = 'rtl'; x.textAlign = 'center';
+  x.fillStyle = '#0f172a';
+  x.font = '800 38px Cairo, sans-serif';
+  x.fillText(d.name, W/2, 90, W-60);
+  x.fillStyle = '#64748b';
+  x.font = '600 26px Cairo, sans-serif';
+  const sub = [(d.gender==='F'?'خادمة':'خادم'), d.family].filter(Boolean).join(' · ');
+  x.fillText(sub, W/2, 138, W-60);
+  x.drawImage(qr, (W-520)/2, 175, 520, 520);
+  x.fillStyle = '#64748b';
+  x.font = '600 22px Cairo, sans-serif';
+  x.fillText(d.stage, W/2, 745, W-60);
+  x.fillText(d.phone, W/2, 785, W-60);
+  x.fillStyle = '#94a3b8';
+  x.font = '600 19px Cairo, sans-serif';
+  x.fillText('امسح الكارت ده في برنامج الخدمة لتسجيل البيانات', W/2, 830, W-40);
+  return c;
+}
+
+let currentCanvas = null, currentName = '';
+
+async function showCard(d){
+  try{ await document.fonts.load('800 38px Cairo'); await document.fonts.load('600 22px Cairo'); }catch(e){}
+  currentCanvas = await buildCard(d);
+  currentName = d.name;
+  $('cardImg').src = currentCanvas.toDataURL('image/png');
+  $('formCard').classList.add('hidden');
+  $('result').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ========= حفظ نسخة على نفس الجهاز (اختياري، عشان تقدر ترجع تفتح الكارت) ========= */
+function loadSaved(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; }
+}
+function storeSaved(list){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(list)); }catch(e){}
+}
+function renderSaved(){
+  const list = loadSaved();
+  $('savedBox').classList.toggle('hidden', !list.length);
+  const box = $('savedList'); box.innerHTML = '';
+  list.forEach((d,i)=>{
+    const el = document.createElement('div'); el.className = 'item';
+    const t = document.createElement('b');
+    t.textContent = d.name;
+    const s = document.createElement('small');
+    s.textContent = [d.family, d.phone].filter(Boolean).join(' · ');
+    t.appendChild(s);
+    const open = document.createElement('button'); open.textContent = 'الكارت';
+    open.onclick = ()=>showCard(d);
+    const del = document.createElement('button'); del.textContent = '🗑'; del.className = 'del';
+    del.onclick = ()=>{
+      if(!confirm('مسح '+d.name+' من القائمة دي؟ (الكارت اللي محفوظ عندك في الصور مش هيتأثر)')) return;
+      const l = loadSaved(); l.splice(i,1); storeSaved(l); renderSaved();
+    };
+    el.append(t, open, del);
+    box.appendChild(el);
+  });
+}
+
+/* ========= الأحداث ========= */
+$('btn-make').onclick = async ()=>{
+  const d = readForm();
+  let bad = false;
+  FIELDS.forEach(id=>{
+    const key = {'f-name':'name','f-stage':'stage','f-family':'family','f-birth':'birth','f-phone':'phone','f-address':'address','f-father':'father'}[id];
+    const miss = !d[key];
+    $(id).classList.toggle('bad', miss);
+    if(miss) bad = true;
+  });
+  if(bad){ alert('من فضلك املأ كل الخانات'); return; }
+  if(d.phone.replace(/\D/g,'').length < 10){ $('f-phone').classList.add('bad'); alert('رقم التليفون مش مظبوط'); return; }
+
+  const list = loadSaved().filter(x => !(x.name===d.name && x.phone===d.phone));
+  list.unshift(d); storeSaved(list); renderSaved();
+  await showCard(d);
+};
+FIELDS.forEach(id=>$(id).addEventListener('input',()=>$(id).classList.remove('bad')));
+
+$('btn-dl').onclick = ()=>{
+  if(!currentCanvas) return;
+  const a = document.createElement('a');
+  a.download = 'QR_' + currentName.replace(/\s+/g,'_') + '.png';
+  a.href = currentCanvas.toDataURL('image/png');
+  document.body.appendChild(a); a.click(); a.remove();
+};
+$('btn-share').onclick = ()=>{
+  if(!currentCanvas) return;
+  currentCanvas.toBlob(async blob=>{
+    const file = new File([blob], 'QR_' + currentName.replace(/\s+/g,'_') + '.png', {type:'image/png'});
+    try{
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:'كارت QR - ' + currentName});
+      }else{
+        alert('المشاركة مش مدعومة على المتصفح ده، استخدم زرار حفظ الصورة');
+      }
+    }catch(e){ /* المستخدم لغى */ }
+  }, 'image/png');
+};
+$('btn-new').onclick = ()=>{
+  FIELDS.forEach(id=>$(id).value = '');
+  $('g-m').checked = true;
+  $('result').classList.add('hidden');
+  $('formCard').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+renderSaved();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
